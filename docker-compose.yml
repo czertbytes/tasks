@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+
+  tasks:
+    image: czertbytes/tasks
+    container_name: tasks
+    ports:
+      - "8091:8080"

@@ -19,7 +19,7 @@ BUILD_TAGS?=latest
 # ignores "can't load package: package" errors produced by go list command
 GO_TEST_PACKAGES?=$(shell go list ./... 2>/dev/null | grep -v /vendor/)
 
-all: test image
+all: image
 
 build:
 	mkdir -p $(DOCKER_SOURCE)/bin
@@ -39,7 +39,17 @@ build-linux:
 test:
 	go test -v -timeout 60s $(GO_TEST_PACKAGES)
 
-image: build-linux
+test-linux:
+	docker run --rm \
+		-v $(PWD):/go/src/$(REPOSITORY)/$(ORGANIZATION)/$(PROJECT) \
+		-w /go/src/$(REPOSITORY)/$(ORGANIZATION)/$(PROJECT) \
+		-e GOOS=linux \
+		-e GOARCH=amd64 \
+		-e CGO_ENABLED=1 \
+		$(BUILDER_IMAGE) \
+		go test -v -timeout 60s ./...
+
+image: test-linux build-linux
 	docker build -t $(ORGANIZATION)/$(PROJECT):latest $(DOCKER_SOURCE)
 
 run:
